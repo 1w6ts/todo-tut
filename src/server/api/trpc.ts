@@ -1,12 +1,11 @@
 import { initTRPC } from "@trpc/server";
 import { db } from "../db";
-import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import { FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch";
 
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+export const createTRPCContext = async (opts: FetchCreateContextFnOptions) => {
   return {
     db,
-    req: opts.req,
-    res: opts.res,
+    headers: opts.req.headers,
   };
 };
 
