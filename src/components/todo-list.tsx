@@ -7,12 +7,24 @@ import { Button } from "./ui/button";
 import { api } from "@/utils/trpc/client";
 import { TodoListSkeleton } from "./todo-list-skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { Todo } from "@/server/db/schema";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+
+// Define filter types
+type FilterType = "all" | "active" | "completed";
 
 export const TodoList = () => {
   const [newTodoContent, setNewTodoContent] = useState("");
+  const [filter, setFilter] = useState<FilterType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const debouncedNewTodo = useDebounce(newTodoContent, 300);
 
   const utils = api.useContext();
@@ -29,9 +41,8 @@ export const TodoList = () => {
       // Get current todos
       const previousTodos = utils.todo.getAll.getData() || [];
 
-      // Optimistically add the new todo with ISO string dates instead of Date objects
       const optimisticTodo: Todo = {
-        id: Math.floor(Math.random() * -1000000), // Temporary negative ID
+        id: Math.floor(Math.random() * -1000000),
         content: newTodo.content,
         completed: false,
         createdAt: new Date(),
@@ -139,6 +150,22 @@ export const TodoList = () => {
   const completedCount =
     todosQuery.data?.filter((todo) => todo.completed).length || 0;
 
+  // Filter todos based on the selected filter and search query
+  const filteredTodos = todosQuery.data?.filter((todo) => {
+    // First apply the completion filter
+    const matchesCompletionFilter =
+      filter === "all" ||
+      (filter === "active" && !todo.completed) ||
+      (filter === "completed" && todo.completed);
+
+    // Then apply the search filter if there's a search query
+    const matchesSearchFilter = searchQuery
+      ? todo.content.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
+
+    return matchesCompletionFilter && matchesSearchFilter;
+  });
+
   // If loading, show skeleton
   if (todosQuery.isLoading) {
     return <TodoListSkeleton />;
@@ -221,6 +248,36 @@ export const TodoList = () => {
         </div>
       )}
 
+      {/* Filter and search */}
+      <div className="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-medium whitespace-nowrap">Filter:</div>
+          <Select
+            value={filter}
+            onValueChange={(value) => setFilter(value as FilterType)}
+          >
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Filter todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search todos..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+
       <div>
         {todoCount === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
@@ -234,9 +291,19 @@ export const TodoList = () => {
               Add sample todo
             </Button>
           </div>
+        ) : filteredTodos?.length === 0 ? (
+          <div className="text-center py-4 text-muted-foreground">
+            {searchQuery ? (
+              <p>No todos matching "{searchQuery}"</p>
+            ) : (
+              <p>
+                No {filter === "active" ? "active" : "completed"} todos found.
+              </p>
+            )}
+          </div>
         ) : (
           <div className="space-y-2">
-            {todosQuery.data?.map((todo) => (
+            {filteredTodos?.map((todo) => (
               <TodoItem
                 key={todo.id}
                 // @ts-ignore
