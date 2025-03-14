@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 import { TRPCProvider } from "@/utils/trpc/provider";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -18,7 +19,10 @@ export default function RootLayout({
       <body
         className={`${GeistSans.variable} ${GeistSans.className} antialiased`}
       >
-        <TRPCProvider>{children}</TRPCProvider>
+        <TRPCProvider>
+          <Toaster position="top-right" />
+          {children}
+        </TRPCProvider>
       </body>
     </html>
   );
