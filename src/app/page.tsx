@@ -26,6 +26,7 @@ export default function Home() {
             Built with Next.js, tRPC, Neon, Drizzle, and shadcn by{" "}
             <Link
               href="https://github.com/1w6ts"
+              target="_blank"
               className="hover:underline hover:text-white transition-all duration-300"
             >
               1w6ts
