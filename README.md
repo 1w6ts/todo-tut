@@ -1,6 +1,6 @@
 # Next.js Todo App
 
-A modern, full-stack todo application built with Next.js 14 (App Router), tRPC, Neon Postgres, Drizzle ORM, and Shadcn UI.
+A modern, full-stack todo application built with Next.js 15 (App Router), tRPC, Neon Postgres, Drizzle ORM, and Shadcn UI.
 
 ![App Screenshot](https://i.imgur.com/F8zyksQ.png)
 
